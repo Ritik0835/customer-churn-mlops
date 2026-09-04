@@ -29,3 +29,50 @@ jobs:
       - name: Run tests
         run: |
           python -m pytest
+
+      - name: Build Docker image
+        run: |
+          docker build -t customer-churn-api .
+
+      - name: Run Docker container
+        run: |
+          docker run -d --name customer-churn-api -p 8000:8000 customer-churn-api
+
+      - name: Test Docker API
+        run: |
+          for i in {1..10}; do
+            if curl --fail http://localhost:8000/health; then
+              break
+            fi
+            sleep 2
+          done
+
+          curl --fail -X POST http://localhost:8000/predict \
+            -H "Content-Type: application/json" \
+            -d '{
+              "gender": "Male",
+              "SeniorCitizen": 0,
+              "Partner": "Yes",
+              "Dependents": "No",
+              "tenure": 12,
+              "PhoneService": "Yes",
+              "MultipleLines": "No",
+              "InternetService": "Fiber optic",
+              "OnlineSecurity": "No",
+              "OnlineBackup": "Yes",
+              "DeviceProtection": "No",
+              "TechSupport": "No",
+              "StreamingTV": "Yes",
+              "StreamingMovies": "No",
+              "Contract": "Month-to-month",
+              "PaperlessBilling": "Yes",
+              "PaymentMethod": "Electronic check",
+              "MonthlyCharges": 70.5,
+              "TotalCharges": 846.0
+            }'
+
+      - name: Stop Docker container
+        if: always()
+        run: |
+          docker stop customer-churn-api || true
+          docker rm customer-churn-api || true
