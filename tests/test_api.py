@@ -46,3 +46,31 @@ def test_predict():
     assert "churn_probability" in result
     assert result["prediction"] in [0, 1]
     assert 0 <= result["churn_probability"] <= 1
+
+
+def test_predict_rejects_invalid_gender():
+    customer = {
+        "gender": "banana",
+        "SeniorCitizen": 0,
+        "Partner": "Yes",
+        "Dependents": "No",
+        "tenure": 5,
+        "PhoneService": "Yes",
+        "MultipleLines": "No",
+        "InternetService": "DSL",
+        "OnlineSecurity": "No",
+        "OnlineBackup": "No",
+        "DeviceProtection": "No",
+        "TechSupport": "No",
+        "StreamingTV": "No",
+        "StreamingMovies": "No",
+        "Contract": "Month-to-month",
+        "PaperlessBilling": "Yes",
+        "PaymentMethod": "Electronic check",
+        "MonthlyCharges": 50.0,
+        "TotalCharges": 250.0
+    }
+
+    response = client.post("/predict", json=customer)
+
+    assert response.status_code == 422

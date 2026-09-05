@@ -1,4 +1,3 @@
-cat > README.md <<'EOF'
 # Customer Churn MLOps
 
 An end-to-end **Machine Learning Engineering and MLOps project** that predicts whether a telecom customer is likely to churn.
@@ -21,7 +20,9 @@ The project takes a trained machine learning model beyond a notebook and turns i
 
 ## 📌 Project Overview
 
-This project demonstrates the complete lifecycle of a machine learning application:
+This project demonstrates the lifecycle of a machine learning application from model development to production deployment.
+
+### Workflow
 
 1. Exploratory Data Analysis
 2. Data preprocessing
@@ -30,13 +31,13 @@ This project demonstrates the complete lifecycle of a machine learning applicati
 5. Model evaluation
 6. Model serialization
 7. REST API development with FastAPI
-8. Automated testing with pytest
+8. Automated API testing with pytest
 9. Docker containerization
 10. Git/GitHub version control
 11. GitHub Actions CI/CD
 12. Docker Hub image publishing
 13. Cloud deployment with Render
-14. Production API verification
+14. Production prediction logging
 
 ---
 
@@ -49,22 +50,27 @@ This project demonstrates the complete lifecycle of a machine learning applicati
                                │
                                ▼
                     ┌──────────────────────┐
-                    │   ML Training        │
-                    │   src/train.py       │
+                    │    ML Training       │
+                    │    src/train.py      │
                     └──────────┬───────────┘
                                │
                                ▼
                     ┌──────────────────────┐
-                    │   Trained Pipeline   │
-                    │   models/             │
+                    │   Saved ML Pipeline  │
+                    │      Joblib          │
                     └──────────┬───────────┘
                                │
                                ▼
                     ┌──────────────────────┐
-                    │      FastAPI         │
+                    │       FastAPI        │
                     │                      │
                     │  GET  /health        │
                     │  POST /predict       │
+                    └──────────┬───────────┘
+                               │
+                    ┌──────────▼───────────┐
+                    │ Prediction Logging   │
+                    │   JSONL logs         │
                     └──────────┬───────────┘
                                │
                                ▼
