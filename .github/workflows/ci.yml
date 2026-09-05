@@ -34,9 +34,9 @@ jobs:
         run: |
           docker build -t customer-churn-api .
 
-      - name: Run Docker container
-        run: |
-          docker run -d --name customer-churn-api -p 8000:8000 customer-churn-api
+              - name: Run Docker container
+              run: |
+                docker run -d --name customer-churn-api -p 8000:8000 customer-churn-api
 
       - name: Test Docker API
         run: |
