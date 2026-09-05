@@ -1,4 +1,4 @@
-name: Customer Churn CI
+name: Customer Churn CI/CD
 
 on:
   push:
@@ -34,9 +34,12 @@ jobs:
         run: |
           docker build -t customer-churn-api .
 
-              - name: Run Docker container
-              run: |
-                docker run -d --name customer-churn-api -p 8000:8000 customer-churn-api
+      - name: Run Docker container
+        run: |
+          docker run -d \
+            --name customer-churn-api \
+            -p 8000:8000 \
+            customer-churn-api
 
       - name: Test Docker API
         run: |
@@ -70,24 +73,28 @@ jobs:
               "MonthlyCharges": 70.5,
               "TotalCharges": 846.0
             }'
-                          - name: Login to Docker Hub
-          uses: docker/login-action@v4
-          with:
-            username: ${{ vars.DOCKER_USERNAME }}
-            password: ${{ secrets.DOCKER_PASSWORD }}
 
-        - name: Set up Docker Buildx
-          uses: docker/setup-buildx-action@v4
+      - name: Login to Docker Hub
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/login-action@v4
+        with:
+          username: ${{ vars.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-        - name: Build and push Docker image
-          uses: docker/build-push-action@v7
-          with:
-            context: .
-            push: true
-            tags: captainlevi441/customer-churn-api:latest
+      - name: Set up Docker Buildx
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/setup-buildx-action@v4
 
-        - name: Stop Docker container
-          if: always()
-          run: |
-            docker stop customer-churn-api || true
-            docker rm customer-churn-api || true
+      - name: Build and push Docker image
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          tags: captainlevi441/customer-churn-api:latest
+
+      - name: Stop Docker container
+        if: always()
+        run: |
+          docker stop customer-churn-api || true
+          docker rm customer-churn-api || true
