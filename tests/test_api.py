@@ -10,7 +10,12 @@ def test_health():
     response = client.get("/health")
 
     assert response.status_code == 200
-    assert response.json() == {"status": "healthy"}
+
+    result = response.json()
+
+    assert result["status"] == "healthy"
+    assert "model_version" in result
+    assert result["model_version"] == "1"
 
 
 def test_predict():
