@@ -39,6 +39,7 @@ jobs:
           docker run -d \
             --name customer-churn-api \
             -p 8000:8000 \
+            -e API_KEY=test-api-key \
             customer-churn-api
 
       - name: Test Docker API
@@ -52,6 +53,7 @@ jobs:
 
           curl --fail -X POST http://localhost:8000/predict \
             -H "Content-Type: application/json" \
+            -H "X-API-Key: test-api-key" \
             -d '{
               "gender": "Male",
               "SeniorCitizen": 0,

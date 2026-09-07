@@ -1,6 +1,5 @@
 import json
 import logging
-import os
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -8,8 +7,11 @@ from typing import Literal
 
 import joblib
 import pandas as pd
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from pydantic import BaseModel
+
+from app.config import MODEL_VERSION
+from app.security import check_rate_limit, verify_api_key
 
 
 # --------------------------------------------------
@@ -23,8 +25,6 @@ LOG_DIR = ROOT_DIR / "logs"
 PREDICTION_LOG_PATH = LOG_DIR / "predictions.jsonl"
 
 LOG_DIR.mkdir(exist_ok=True)
-
-MODEL_VERSION = os.getenv("MODEL_VERSION", "1")
 
 
 # --------------------------------------------------
@@ -157,7 +157,13 @@ def health():
 
 
 @app.post("/predict")
-def predict(customer: CustomerData, request: Request):
+def predict(
+    customer: CustomerData,
+    request: Request,
+    _: str = Depends(verify_api_key),
+):
+    check_rate_limit(request)
+
     data = pd.DataFrame([customer.model_dump()])
 
     prediction = model.predict(data)[0]
