@@ -64,8 +64,8 @@ def check_rate_limit(request: Request) -> None:
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                 detail="Rate limit exceeded. Please try again later.",
+                headers={"Retry-After": str(RATE_LIMIT_WINDOW_SECONDS)},
             )
-
         timestamps.append(now)
 
 

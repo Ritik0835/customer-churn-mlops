@@ -156,7 +156,24 @@ def health():
 # --------------------------------------------------
 
 
-@app.post("/predict")
+@app.post(
+    "/predict",
+    responses={
+        401: {
+            "description": "Missing or invalid API key.",
+        },
+        429: {
+            "description": "Rate limit exceeded.",
+            "headers": {
+                "Retry-After": {
+                    "description": "Number of seconds to wait before retrying.",
+                    "schema": {"type": "integer"},
+                }
+            },
+        },
+    },
+)
+
 def predict(
     customer: CustomerData,
     request: Request,
