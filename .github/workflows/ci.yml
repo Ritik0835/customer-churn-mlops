@@ -28,7 +28,19 @@ jobs:
 
       - name: Run tests
         run: |
-          python -m pytest
+          python -m pytest -q
+
+      - name: Validate data
+        run: |
+          python src/validate_data.py
+
+      - name: Train model
+        run: |
+          python src/train.py
+
+      - name: Run model quality gate
+        run: |
+          python src/quality_gate.py
 
       - name: Build Docker image
         run: |
@@ -45,17 +57,52 @@ jobs:
       - name: Test Docker API
         run: |
           for i in {1..10}; do
-            if curl --fail http://localhost:8000/health; then
+            if curl -f http://localhost:8000/health; then
               break
             fi
             sleep 2
           done
 
-          curl --fail -X POST http://localhost:8000/predict \
+          curl -f http://localhost:8000/health
+
+          echo "Testing unauthenticated /predict..."
+          if curl -s -o /dev/null -w "%{http_code}" \
+            -X POST http://localhost:8000/predict \
+            -H "Content-Type: application/json" \
+            -d '{
+              "gender": "Female",
+              "SeniorCitizen": 0,
+              "Partner": "Yes",
+              "Dependents": "No",
+              "tenure": 12,
+              "PhoneService": "Yes",
+              "MultipleLines": "No",
+              "InternetService": "Fiber optic",
+              "OnlineSecurity": "No",
+              "OnlineBackup": "Yes",
+              "DeviceProtection": "No",
+              "TechSupport": "No",
+              "StreamingTV": "Yes",
+              "StreamingMovies": "No",
+              "Contract": "Month-to-month",
+              "PaperlessBilling": "Yes",
+              "PaymentMethod": "Electronic check",
+              "MonthlyCharges": 70.5,
+              "TotalCharges": 846.0
+            }' | grep -q "^401$"; then
+            echo "Unauthenticated request correctly returned 401"
+          else
+            echo "Unauthenticated request did not return 401"
+            exit 1
+          fi
+
+          echo "Testing authenticated /predict..."
+          curl -f \
+            -X POST http://localhost:8000/predict \
             -H "Content-Type: application/json" \
             -H "X-API-Key: test-api-key" \
             -d '{
-              "gender": "Male",
+              "gender": "Female",
               "SeniorCitizen": 0,
               "Partner": "Yes",
               "Dependents": "No",
@@ -85,7 +132,7 @@ jobs:
 
       - name: Set up Docker Buildx
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@v3
 
       - name: Build and push Docker image
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
