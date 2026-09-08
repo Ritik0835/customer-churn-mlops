@@ -42,7 +42,12 @@ def verify_api_key(api_key: str = Depends(api_key_header)) -> str:
 
 
 def check_rate_limit(request: Request) -> None:
-    client_ip = request.client.host if request.client else "unknown"
+    forwarded_for = request.headers.get("X-Forwarded-For")
+    if forwarded_for:
+        client_ip = forwarded_for.split(",")[0].strip()
+    else:
+        client_ip = request.client.host if request.client else "unknown"
+
     now = time.monotonic()
     window_start = now - RATE_LIMIT_WINDOW_SECONDS
 
