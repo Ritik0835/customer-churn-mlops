@@ -758,13 +758,6 @@ Possible production extensions include:
 
 These are future improvements, not currently implemented features.
 
----
-
-## 🎤 Interview-Ready Explanation
-
-> **“I built an end-to-end customer churn MLOps system rather than stopping at model training. I started with data validation and an sklearn preprocessing pipeline, compared multiple classifiers with 5-fold GridSearchCV, selected the best model using ROC-AUC, and tuned its decision threshold for F1. I tracked experiments and model artifacts with MLflow and added a quality gate requiring minimum F1 and ROC-AUC before the pipeline can proceed. I then exposed the model through a FastAPI service with Pydantic validation, API-key authentication, request IDs, rate limiting, model-version reporting, and prediction logging. The service is containerized with a non-root Docker user and healthcheck. GitHub Actions runs tests, validation, training, the quality gate, Docker build, and API integration tests, then publishes the image to Docker Hub on `main`. The production API runs on Render, and I added both drift monitoring and ground-truth performance monitoring to detect changes after deployment.”**
-
----
 
 ## 👨‍💻 Author
 
