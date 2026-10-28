@@ -124,3 +124,22 @@ def test_monitoring_report_is_valid_json(tmp_path):
 
     assert report["status"] == "completed"
     assert report["rows_monitored"] == 50
+
+
+def test_calculate_psi_counts_values_outside_reference_range():
+    # Half of the current values are far above anything seen in the reference.
+    # They must raise PSI instead of being dropped from the comparison.
+    reference = pd.Series(list(range(20, 100)) * 10)
+    in_range = list(range(20, 100)) * 5
+    current = pd.Series(in_range + [300] * len(in_range))
+
+    psi = calculate_psi(reference, current)
+
+    assert psi > PSI_ALERT_THRESHOLD
+
+
+def test_calculate_psi_all_values_below_reference_range():
+    reference = pd.Series(list(range(20, 100)) * 10)
+    current = pd.Series([-50] * 200)
+
+    assert calculate_psi(reference, current) > PSI_ALERT_THRESHOLD

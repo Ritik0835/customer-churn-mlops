@@ -2,6 +2,7 @@ import json
 import math
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 
@@ -29,6 +30,12 @@ def calculate_psi(
 
     if len(quantiles) < 2:
         return 0.0
+
+    # Open-ended first and last bins so current values outside the reference
+    # range are counted instead of silently dropped (the strongest drift signal).
+    quantiles = np.asarray(quantiles, dtype=float)
+    quantiles[0] = -np.inf
+    quantiles[-1] = np.inf
 
     reference_binned = pd.cut(
         reference,
