@@ -8,7 +8,7 @@ from typing import Literal
 import joblib
 import pandas as pd
 from fastapi import Depends, FastAPI, Request
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.config import MODEL_VERSION
 from app.security import check_rate_limit, verify_api_key
@@ -81,7 +81,8 @@ class CustomerData(BaseModel):
     SeniorCitizen: Literal[0, 1]
     Partner: Literal["Yes", "No"]
     Dependents: Literal["Yes", "No"]
-    tenure: int
+    # Months with the company. Bounds reject impossible values.
+    tenure: int = Field(ge=0, le=120)
     PhoneService: Literal["Yes", "No"]
     MultipleLines: Literal[
         "Yes",
@@ -135,8 +136,11 @@ class CustomerData(BaseModel):
         "Bank transfer (automatic)",
         "Credit card (automatic)",
     ]
-    MonthlyCharges: float
-    TotalCharges: float
+    MonthlyCharges: float = Field(ge=0, le=10_000, allow_inf_nan=False)
+    # New customers (tenure 0) have no total charges yet; the model imputes it.
+    TotalCharges: float | None = Field(
+        default=None, ge=0, le=1_000_000, allow_inf_nan=False
+    )
 
 
 # --------------------------------------------------
@@ -158,6 +162,7 @@ def health():
 
 @app.post(
     "/predict",
+    dependencies=[Depends(check_rate_limit)],
     responses={
         401: {
             "description": "Missing or invalid API key.",
@@ -179,9 +184,9 @@ def predict(
     request: Request,
     _: str = Depends(verify_api_key),
 ):
-    check_rate_limit(request)
-
     data = pd.DataFrame([customer.model_dump()])
+    # None becomes NaN so the pipeline's imputer can handle it.
+    data["TotalCharges"] = pd.to_numeric(data["TotalCharges"], errors="coerce")
 
     prediction = model.predict(data)[0]
     probability = model.predict_proba(data)[0][1]
