@@ -1,12 +1,6 @@
 -r requirements.txt
 
 pytest
-
-matplotlib
-jupyter
-jupyterlab
-notebook
-ipykernel
-ipywidgets
 httpx
+matplotlib
 mlflow

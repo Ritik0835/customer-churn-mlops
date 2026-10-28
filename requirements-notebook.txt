@@ -1,0 +1,7 @@
+-r requirements-dev.txt
+
+jupyter
+jupyterlab
+notebook
+ipykernel
+ipywidgets
