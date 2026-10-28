@@ -247,18 +247,18 @@ The project includes automated tests for the main engineering components.
 Current test result:
 
 ```text
-29 passed, 2 warnings
+40 passed, 1 warning
 ```
 
 Coverage includes:
 
 - API behavior
-- Pydantic request validation
+- Pydantic request validation (including numeric range checks)
 - API-key authentication
-- Rate limiting
+- Rate limiting (including forged `X-Forwarded-For` and wrong-key guessing)
 - Data validation
 - Model quality gate
-- Data drift monitoring
+- Data drift monitoring (including values outside the reference range)
 - Performance monitoring
 
 The test suite is executed in GitHub Actions as part of every push and pull request targeting `main`.
@@ -375,6 +375,8 @@ Additional controls include:
 ## 🚦 Rate Limiting
 
 The API includes in-memory rate limiting.
+
+The limit is applied per client IP **before** API-key verification, so wrong-key guessing is limited too. The `X-Forwarded-For` header can be forged by any client, so it is ignored unless `TRUSTED_PROXY_COUNT` is set to the number of reverse proxies in front of the app (for example `1`); the address added by the last trusted proxy is then used as the client IP. Check your hosting platform's documentation for the correct number of hops. Without this setting, clients behind one proxy share a single bucket.
 
 Default configuration:
 
@@ -619,6 +621,7 @@ customer-churn-mlops/
 ├── Dockerfile
 ├── requirements.txt
 ├── requirements-dev.txt
+├── requirements-notebook.txt
 └── README.md
 ```
 
@@ -661,6 +664,12 @@ source .venv/bin/activate
 
 ```bash
 pip install -r requirements-dev.txt
+```
+
+Optional, to run the notebooks:
+
+```bash
+pip install -r requirements-notebook.txt
 ```
 
 ### 4. Validate the dataset
@@ -724,6 +733,8 @@ The API reads configuration from environment variables:
 | `MODEL_VERSION` | `1` | Model version returned by the API |
 | `RATE_LIMIT_REQUESTS` | `10` | Requests allowed per rate-limit window |
 | `RATE_LIMIT_WINDOW_SECONDS` | `60` | Rate-limit window in seconds |
+| `TRUSTED_PROXY_COUNT` | `0` | Reverse proxies trusted for `X-Forwarded-For` (`0` ignores the header) |
+| `MAX_TRACKED_CLIENTS` | `10000` | Cap on client addresses kept by the in-memory limiter |
 
 For production, configure secrets through Render or GitHub Actions rather than committing them to the repository.
 
