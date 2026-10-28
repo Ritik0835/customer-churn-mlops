@@ -98,8 +98,8 @@ y = df["Churn"].map({"No": 0, "Yes": 1})
 X_train, X_test, y_train, y_test = train_test_split(
     X,
     y,
-    test_size=0.2,
-    random_state=42,
+    test_size=TEST_SIZE,
+    random_state=RANDOM_STATE,
     stratify=y,
 )
 
@@ -162,7 +162,7 @@ models = {
     ),
     "random_forest": (
         RandomForestClassifier(
-            random_state=42,
+            random_state=RANDOM_STATE,
             class_weight="balanced",
             n_jobs=-1,
         ),
@@ -174,7 +174,7 @@ models = {
     ),
     "gradient_boosting": (
         GradientBoostingClassifier(
-            random_state=42,
+            random_state=RANDOM_STATE,
         ),
         {
             "classifier__n_estimators": [100, 200],
@@ -395,8 +395,8 @@ training_results = {
     "threshold_metric": "f1",
     "test_metrics": test_metrics,
     "model_comparison": results,
-    "test_size": 0.2,
-    "random_state": 42,
+    "test_size": TEST_SIZE,
+    "random_state": RANDOM_STATE,
     "cv_folds": 5,
     "selection_metric": "roc_auc",
 }
